@@ -1,0 +1,8 @@
+android-sdk/
+cmdtools.zip
+.gradle/
+*.iml
+local.properties
+build/
+*.apk
+*.aab

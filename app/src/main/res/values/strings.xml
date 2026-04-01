@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">灵犀助手</string>
+    <string name="service_description">灵犀助手 - 闲鱼自动化服务。通过无障碍服务操作闲鱼APP，实现自动发布、自动回复等功能。</string>
+</resources>
