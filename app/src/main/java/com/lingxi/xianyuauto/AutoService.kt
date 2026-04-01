@@ -129,7 +129,7 @@ class AutoService : AccessibilityService() {
                 path == "/screenshot" -> handleScreenshot()
                 path == "/find" && method == "POST" -> handleFind(body)
                 path == "/gesture" && method == "POST" -> handleGesture(body)
-                else -> jsonResponse(404, mapOf("error" to "Not Found: $path"))
+                else -> jsonResponse(404, hashMapOf<String, Any>("error" to "Not Found: $path"))
             }
 
             writeResponse(output, response)
@@ -137,7 +137,7 @@ class AutoService : AccessibilityService() {
             Log.e(TAG, "处理请求错误: ${e.message}")
             try {
                 writeResponse(client.getOutputStream(), 
-                    jsonResponse(500, mapOf("error" to e.message)))
+                    jsonResponse(500, hashMapOf<String, Any>("error" to (e.message ?: "unknown error") as Any)))
             } catch (_: Exception) {}
         } finally {
             client.close()
@@ -155,28 +155,24 @@ class AutoService : AccessibilityService() {
         output.flush()
     }
 
-    private fun jsonResponse(code: Int = 200, data: Map<String, Any?>): String {
-        val json = JSONObject()
-        for ((key, value) in data) {
-            json.put(key, value ?: JSONObject.NULL)
-        }
-        return json.toString()
+    private fun jsonResponse(code: Int = 200, data: HashMap<String, Any> = HashMap()): String {
+        return JSONObject(data as Map<*, *>).toString()
     }
 
     // ==================== 命令处理器 ====================
 
     private fun handleStatus(): String {
-        return jsonResponse(200, mapOf(
+        return jsonResponse(200, hashMapOf<String, Any>(
             "status" to "running",
             "service" to "connected",
-            "root" to rootInActiveWindow?.packageName?.toString() ?: "unknown"
+            "root" to (rootInActiveWindow?.packageName?.toString() ?: "unknown") as Any
         ))
     }
 
     private fun handleGetUITree(): String {
-        val root = rootInActiveWindow ?: return jsonResponse(500, mapOf("error" to "No root"))
+        val root = rootInActiveWindow ?: return jsonResponse(500, hashMapOf<String, Any>("error" to "No root" as Any))
         val tree = nodeToJson(root)
-        return jsonResponse(200, mapOf("tree" to tree))
+        return jsonResponse(200, hashMapOf<String, Any>("tree" to tree))
     }
 
     private fun nodeToJson(node: AccessibilityNodeInfo): JSONObject {
@@ -190,7 +186,7 @@ class AutoService : AccessibilityService() {
         
         val bounds = Rect()
         node.getBoundsInScreen(bounds)
-        json.put("bounds", mapOf(
+        json.put("bounds", hashMapOf<String, Any>(
             "left" to bounds.left, "top" to bounds.top,
             "right" to bounds.right, "bottom" to bounds.bottom
         ))
@@ -223,13 +219,13 @@ class AutoService : AccessibilityService() {
                 val node = nodes.first()
                 val success = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 nodes.forEach { it.recycle() }
-                jsonResponse(200, mapOf("success" to success, "text" to text))
+                jsonResponse(200, hashMapOf<String, Any>("success" to success, "text" to text))
             }
         } else if (params.containsKey("x") && params.containsKey("y")) {
             val x = params["x"]!!.toFloat()
             val y = params["y"]!!.toFloat()
             val success = clickAt(x, y)
-            jsonResponse(200, mapOf("success" to success, "x" to x, "y" to y))
+            jsonResponse(200, hashMapOf<String, Any>("success" to success, "x" to x, "y" to y))
         } else {
             errorResponse("需要text或x,y参数")
         }
@@ -244,7 +240,7 @@ class AutoService : AccessibilityService() {
         val y = params["y"]?.toFloat() ?: return errorResponse("需要y参数")
         
         val success = longClickAt(x, y)
-        return jsonResponse(200, mapOf("success" to success))
+        return jsonResponse(200, hashMapOf<String, Any>("success" to success))
     }
 
     /**
@@ -263,11 +259,11 @@ class AutoService : AccessibilityService() {
             args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
             val success = focused.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
             focused.recycle()
-            return jsonResponse(200, mapOf("success" to success, "method" to "setText"))
+            return jsonResponse(200, hashMapOf<String, Any>("success" to success, "method" to "setText"))
         }
         
         // 备用方案：通过剪贴板粘贴
-        return jsonResponse(500, mapOf("error" to "未找到焦点输入框"))
+        return jsonResponse(500, hashMapOf<String, Any>("error" to "未找到焦点输入框"))
     }
 
     /**
@@ -292,22 +288,22 @@ class AutoService : AccessibilityService() {
         }
         
         val success = swipe(startX, startY, endX, endY, 300)
-        return jsonResponse(200, mapOf("success" to success, "direction" to direction))
+        return jsonResponse(200, hashMapOf<String, Any>("success" to success, "direction" to direction))
     }
 
     private fun handleBack(): String {
         val success = performGlobalAction(GLOBAL_ACTION_BACK)
-        return jsonResponse(200, mapOf("success" to success))
+        return jsonResponse(200, hashMapOf<String, Any>("success" to success))
     }
 
     private fun handleHome(): String {
         val success = performGlobalAction(GLOBAL_ACTION_HOME)
-        return jsonResponse(200, mapOf("success" to success))
+        return jsonResponse(200, hashMapOf<String, Any>("success" to success))
     }
 
     private fun handleScreenshot(): String {
         // AccessibilityService不直接支持截图，需要MediaProjection
-        return jsonResponse(501, mapOf("error" to "截图需使用ADB screencap"))
+        return jsonResponse(501, hashMapOf<String, Any>("error" to "截图需使用ADB screencap"))
     }
 
     /**
@@ -351,7 +347,7 @@ class AutoService : AccessibilityService() {
         }
         
         searchNode(root)
-        return jsonResponse(200, mapOf("count" to results.length(), "results" to results))
+        return jsonResponse(200, hashMapOf<String, Any>("count" to results.length(), "results" to results))
     }
 
     /**
@@ -373,7 +369,7 @@ class AutoService : AccessibilityService() {
             else -> false
         }
         
-        return jsonResponse(200, mapOf("success" to success, "type" to type))
+        return jsonResponse(200, hashMapOf<String, Any>("success" to success, "type" to type))
     }
 
     // ==================== 手势执行 ====================
@@ -447,6 +443,6 @@ class AutoService : AccessibilityService() {
     }
 
     private fun errorResponse(message: String): String {
-        return jsonResponse(500, mapOf("error" to message))
+        return jsonResponse(500, hashMapOf<String, Any>("error" to message))
     }
 }
