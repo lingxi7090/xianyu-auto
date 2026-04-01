@@ -35,6 +35,7 @@ class AutoService : AccessibilityService() {
     }
 
     private var serverSocket: ServerSocket? = null
+    private var lastPackage: String = "unknown"
     private var serverJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -46,7 +47,7 @@ class AutoService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // 监听闲鱼界面变化（可选，用于自动响应）
+        event?.packageName?.toString()?.let { lastPackage = it }
     }
 
     override fun onInterrupt() {
@@ -167,7 +168,7 @@ class AutoService : AccessibilityService() {
         return jsonResponse(200, hashMapOf<String, Any>(
             "status" to "running",
             "service" to "connected",
-            "root" to (rootInActiveWindow?.packageName?.toString() ?: "unknown") as Any
+            "root" to lastPackage
         ))
     }
 
