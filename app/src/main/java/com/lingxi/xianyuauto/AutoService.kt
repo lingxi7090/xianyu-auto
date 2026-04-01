@@ -156,7 +156,10 @@ class AutoService : AccessibilityService() {
     }
 
     private fun jsonResponse(code: Int = 200, data: Map<String, Any?>): String {
-        val json = JSONObject(data)
+        val json = JSONObject()
+        for ((key, value) in data) {
+            json.put(key, value ?: JSONObject.NULL)
+        }
         return json.toString()
     }
 
