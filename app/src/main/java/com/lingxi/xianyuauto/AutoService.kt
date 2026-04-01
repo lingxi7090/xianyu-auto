@@ -67,6 +67,7 @@ class AutoService : AccessibilityService() {
         serverJob = scope.launch {
             try {
                 serverSocket = ServerSocket(PORT)
+            serverSocket?.reuseAddress = true
                 Log.i(TAG, "HTTP服务器启动: localhost:$PORT")
                 
                 while (isActive) {
@@ -82,6 +83,7 @@ class AutoService : AccessibilityService() {
     }
 
     private suspend fun handleRequest(client: java.net.Socket) {
+        client.soTimeout = 5000  // 5 second timeout
         try {
             val reader = BufferedReader(InputStreamReader(client.getInputStream()))
             val output = client.getOutputStream()
