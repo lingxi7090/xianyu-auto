@@ -360,11 +360,11 @@ class AutoService : AccessibilityService() {
         val type = json.getString("type")
         
         val success = when (type) {
-            "click" -> clickAt(json.getFloat("x1"), json.getFloat("y1"))
-            "long_click" -> longClickAt(json.getFloat("x1"), json.getFloat("y1"))
+            "click" -> clickAt(json.optDouble("x1").toFloat(), json.optDouble("y1").toFloat())
+            "long_click" -> longClickAt(json.optDouble("x1").toFloat(), json.optDouble("y1").toFloat())
             "swipe" -> swipe(
-                json.getFloat("x1"), json.getFloat("y1"),
-                json.getFloat("x2"), json.getFloat("y2"),
+                json.optDouble("x1").toFloat(), json.optDouble("y1").toFloat(),
+                json.optDouble("x2").toFloat(), json.optDouble("y2").toFloat(),
                 json.optInt("duration", 300).toLong()
             )
             else -> false
